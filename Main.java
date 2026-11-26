@@ -1,21 +1,27 @@
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 
 public class Main extends JPanel implements MouseListener, ActionListener {
 
     int menu = 0;
-    int color = 0;
 
-    ArrayList<Point> bashni = new ArrayList<>();
-    ArrayList<Point> voiska = new ArrayList<>();
+    int[] x = {150, 450, 650, 350};
+    int[] y = {250, 150, 350, 380};
 
-    Point vibrana = null;
-    Point kuda = null;
+    int[] owner = {1, 2, 2, 2};
+    int[] soldiers = {100, 12, 15, 8};
 
-    javax.swing.Timer timer = new javax.swing.Timer(20, this);
+    int selected = -1;
+    int target = -1;
+    int army = 0;
+
+    double armyX;
+    double armyY;
+
+    boolean victory = false;
+
+    Timer timer = new Timer(20, this);
 
     public Main() {
         setPreferredSize(new Dimension(800, 500));
@@ -23,239 +29,263 @@ public class Main extends JPanel implements MouseListener, ActionListener {
         timer.start();
     }
 
+    public void startGame() {
+        menu = 1;
+
+        owner = new int[]{1, 2, 2, 2};
+        soldiers = new int[]{100, 12, 15, 8};
+
+        selected = -1;
+        target = -1;
+        army = 0;
+        victory = false;
+    }
+
+    public void button(Graphics g, String text, int x, int y,
+                       int w, int h, Color c) {
+
+        g.setColor(c);
+        g.fillRect(x, y, w, h);
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+
+        FontMetrics fm = g.getFontMetrics();
+
+        int textX = x + (w - fm.stringWidth(text)) / 2;
+        int textY = y + (h + fm.getAscent() - fm.getDescent()) / 2;
+
+        g.drawString(text, textX, textY);
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-
         if (menu == 0) {
+
             g.setColor(Color.DARK_GRAY);
             g.fillRect(0, 0, 800, 500);
 
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 30));
-
-
-            g.setColor(Color.GREEN);
-            g.fillRect(300, 160, 200, 50);
-
-            g.setColor(Color.BLACK);
-            g.setFont(new Font("Arial", Font.BOLD, 20));
-            g.drawString("ИГРАТЬ", 360, 192);
-
-            g.setColor(Color.ORANGE);
-            g.fillRect(300, 240, 200, 50);
-
-            g.setColor(Color.BLACK);
-            g.drawString("НАСТРОЙКИ", 335, 272);
-
-            g.setColor(Color.RED);
-            g.fillRect(300, 320, 200, 50);
-
-            g.setColor(Color.BLACK);
-            g.drawString("ВЫХОД", 365, 352);
+            button(g, "ИГРАТЬ", 300, 160, 200, 50, Color.GREEN);
+            button(g, "НАСТРОЙКИ", 300, 240, 200, 50, Color.ORANGE);
+            button(g, "ВЫХОД", 300, 320, 200, 50, Color.RED);
         }
 
-
         if (menu == 1) {
-            if (color == 0) {
-                g.setColor(new Color(100, 180, 100));
-            }
-            if (color == 1) {
-                g.setColor(Color.GRAY);
-            }
-            if (color == 2) {
-                g.setColor(new Color(200, 180, 100));
-            }
 
+            g.setColor(new Color(100, 180, 100));
             g.fillRect(0, 0, 800, 500);
 
+            for (int i = 0; i < 4; i++) {
 
-            for (int i = 0; i < bashni.size(); i++) {
-                Point p = bashni.get(i);
-
-                if (i == 0) {
+                if (owner[i] == 1) {
                     g.setColor(Color.BLUE);
                 } else {
                     g.setColor(Color.RED);
                 }
 
-                g.fillOval(p.x - 30, p.y - 30, 60, 60);
+                g.fillOval(x[i] - 30, y[i] - 30, 60, 60);
 
                 g.setColor(Color.BLACK);
-                g.drawOval(p.x - 30, p.y - 30, 60, 60);
+                g.drawOval(x[i] - 30, y[i] - 30, 60, 60);
+
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 20));
+
+                g.drawString("" + soldiers[i], x[i] - 15, y[i] + 7);
             }
 
+            if (target != -1) {
 
+                g.setColor(Color.BLUE);
+                g.fillOval((int) armyX - 15, (int) armyY - 15, 30, 30);
 
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 12));
 
-            g.setColor(Color.BLUE);
-
-            for (int i = 0; i < voiska.size(); i++) {
-                Point p = voiska.get(i);
-                g.fillOval(p.x - 5, p.y - 5, 10, 10);
+                g.drawString("" + army, (int) armyX - 10, (int) armyY + 4);
             }
 
+            button(g, "В МЕНЮ", 670, 10, 115, 40, Color.LIGHT_GRAY);
 
-            g.setColor(Color.DARK_GRAY);
-            g.fillRect(670, 10, 115, 40);
+            if (victory) {
 
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 16));
-            g.drawString("В МЕНЮ", 690, 36);
+                g.setColor(Color.DARK_GRAY);
+                g.fillRect(200, 180, 400, 140);
+
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 36));
+
+                g.drawString("ПОБЕДА!", 310, 235);
+
+                button(g, "В МЕНЮ", 280, 260, 240, 40, Color.GREEN);
+            }
         }
 
-        // настройки
         if (menu == 2) {
+
             g.setColor(Color.DARK_GRAY);
             g.fillRect(0, 0, 800, 500);
 
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 30));
-            g.drawString("НАСТРОЙКИ", 300, 100);
 
-            g.setFont(new Font("Arial", Font.PLAIN, 20));
-            g.drawString("Выбери цвет поля", 310, 160);
+            g.drawString("НАСТРОЙКИ", 290, 100);
 
-            g.setColor(Color.GREEN);
-            g.fillRect(230, 200, 100, 60);
+            button(g, "Жёлтый", 170, 200, 140, 60, Color.YELLOW);
 
-            g.setColor(Color.GRAY);
-            g.fillRect(350, 200, 100, 60);
+            button(g, "Фиолетовый", 330, 200, 140, 60,
+                    new Color(180, 100, 230));
 
-            g.setColor(new Color(200, 180, 100));
-            g.fillRect(470, 200, 100, 60);
+            button(g, "Красный", 490, 200, 140, 60, Color.RED);
 
-            g.setColor(Color.ORANGE);
-            g.fillRect(300, 340, 200, 50);
-
-            g.setColor(Color.BLACK);
-            g.setFont(new Font("Arial", Font.BOLD, 20));
-            g.drawString("НАЗАД", 365, 372);
+            button(g, "НАЗАД", 300, 340, 200, 50, Color.ORANGE);
         }
     }
 
+    public boolean inside(int mx, int my, int x, int y, int w, int h) {
 
-    public void startGame() {
-        menu = 1;
-
-        bashni.clear();
-        voiska.clear();
-
-        vibrana = null;
-        kuda = null;
-
-        bashni.add(new Point(150, 250));
-        bashni.add(new Point(450, 150));
-        bashni.add(new Point(650, 350));
-        bashni.add(new Point(350, 380));
+        return mx >= x && mx <= x + w
+                && my >= y && my <= y + h;
     }
 
-
     public void mouseClicked(MouseEvent e) {
-        int x = e.getX();
-        int y = e.getY();
 
-        // кнопки меню
+        int mx = e.getX();
+        int my = e.getY();
+
         if (menu == 0) {
-            if (x >= 300 && x <= 500) {
-                if (y >= 160 && y <= 210) {
-                    startGame();
-                }
 
-                if (y >= 240 && y <= 290) {
-                    menu = 2;
-                }
+            if (inside(mx, my, 300, 160, 200, 50)) {
+                startGame();
+            }
 
-                if (y >= 320 && y <= 370) {
-                    System.exit(0);
-                }
+            else if (inside(mx, my, 300, 240, 200, 50)) {
+                menu = 2;
+            }
+
+            else if (inside(mx, my, 300, 320, 200, 50)) {
+                System.exit(0);
+            }
+        }
+
+        else if (menu == 2) {
+
+            if (inside(mx, my, 300, 340, 200, 50)) {
+                menu = 0;
             }
         }
 
         else if (menu == 1) {
 
-
-            if (x >= 670 && x <= 785 && y >= 10 && y <= 50) {
+            if (inside(mx, my, 670, 10, 115, 40)) {
                 menu = 0;
-                voiska.clear();
-                vibrana = null;
-                kuda = null;
-                repaint();
                 return;
             }
 
+            if (victory) {
 
-            for (int i = 0; i < bashni.size(); i++) {
-                Point p = bashni.get(i);
+                if (inside(mx, my, 280, 260, 240, 40)) {
+                    menu = 0;
+                }
 
-                if (p.distance(x, y) < 30) {
-                    if (i == 0) {
-                        vibrana = p;
-                    } else {
-                        if (vibrana != null) {
-                            kuda = p;
-                            voiska.clear();
+                return;
+            }
 
-                            // отправляем 5 солдат
-                            for (int j = 0; j < 5; j++) {
-                                voiska.add(new Point(
-                                        vibrana.x - j * 15,
-                                        vibrana.y
-                                ));
-                            }
+            if (target != -1) {
+                return;
+            }
 
-                            vibrana = null;
+            for (int i = 0; i < 4; i++) {
+
+                double dx = mx - x[i];
+                double dy = my - y[i];
+
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance <= 30) {
+
+                    if (selected == -1) {
+
+                        if (owner[i] == 1 && soldiers[i] > 0) {
+                            selected = i;
                         }
                     }
-                    break;
+
+                    else if (selected == i) {
+                        selected = -1;
+                    }
+
+                    else {
+
+                        army = soldiers[selected];
+
+                        soldiers[selected] = 0;
+
+                        armyX = x[selected];
+                        armyY = y[selected];
+
+                        target = i;
+                        selected = -1;
+                    }
+
+                    return;
                 }
             }
-        }
 
-
-        else if (menu == 2) {
-            if (y >= 200 && y <= 260) {
-                if (x >= 230 && x <= 330) {
-                    color = 0;
-                }
-
-                if (x >= 350 && x <= 450) {
-                    color = 1;
-                }
-
-                if (x >= 470 && x <= 570) {
-                    color = 2;
-                }
-            }
-
-            if (x >= 300 && x <= 500 &&
-                    y >= 340 && y <= 390) {
-                menu = 0;
-            }
+            selected = -1;
         }
 
         repaint();
     }
+
+    public void battle() {
+
+        if (owner[target] == 1) {
+
+            soldiers[target] += army;
+        }
+
+        else if (army > soldiers[target]) {
+
+            soldiers[target] = army - soldiers[target];
+
+            owner[target] = 1;
+        }
+
+        else {
+
+            soldiers[target] -= army;
+        }
+
+        army = 0;
+        target = -1;
+
+        if (owner[0] == 1 && owner[1] == 1
+                && owner[2] == 1 && owner[3] == 1) {
+
+            victory = true;
+        }
+    }
+
     public void actionPerformed(ActionEvent e) {
-        if (menu == 1 && kuda != null) {
-            for (int i = voiska.size() - 1; i >= 0; i--) {
-                Point p = voiska.get(i);
 
-                double dx = kuda.x - p.x;
-                double dy = kuda.y - p.y;
+        if (menu == 1 && target != -1 && !victory) {
 
-                double rast = Math.sqrt(dx * dx + dy * dy);
+            double dx = x[target] - armyX;
+            double dy = y[target] - armyY;
 
-                if (rast < 5) {
-                    voiska.remove(i);
-                } else {
-                    p.x = p.x + (int) Math.round(dx / rast * 3);
-                    p.y = p.y + (int) Math.round(dy / rast * 3);
-                }
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= 3) {
+
+                battle();
             }
 
-            if (voiska.size() == 0) {
-                kuda = null;
+            else {
+
+                armyX += dx / distance * 3;
+                armyY += dy / distance * 3;
             }
         }
 
@@ -263,21 +293,23 @@ public class Main extends JPanel implements MouseListener, ActionListener {
     }
 
     public void mousePressed(MouseEvent e) {}
+
     public void mouseReleased(MouseEvent e) {}
+
     public void mouseEntered(MouseEvent e) {}
+
     public void mouseExited(MouseEvent e) {}
 
     public static void main(String[] args) {
-        JFrame okno = new JFrame();
 
-        Main igra = new Main();
+        JFrame window = new JFrame();
 
-        okno.add(igra);
-        okno.pack();
+        window.add(new Main());
+        window.pack();
 
-        okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        okno.setLocationRelativeTo(null);
-        okno.setResizable(false);
-        okno.setVisible(true);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setLocationRelativeTo(null);
+        window.setResizable(false);
+        window.setVisible(true);
     }
 }
